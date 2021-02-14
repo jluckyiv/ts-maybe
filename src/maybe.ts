@@ -22,7 +22,7 @@ export const withDefault = <T>(defaultValue: T) => (maybe: Maybe<T>): T => {
     }
 }
 
-export const map = <T>(fun: (arg: T) => T) => (maybe: Maybe<T>): Maybe<T> => {
+export const map = <A, B>(fun: (arg: A) => B) => (maybe: Maybe<A>): Maybe<B> => {
     switch (maybe.kind) {
         case "Just": return Just(fun(maybe.value))
         case "Nothing": return Nothing
@@ -32,9 +32,9 @@ export const map = <T>(fun: (arg: T) => T) => (maybe: Maybe<T>): Maybe<T> => {
     }
 }
 
-export const map2 = <T>(fun: (arg1: T) => (arg2: T) => T) => (maybe1: Maybe<T>) => (maybe2: Maybe<T>): Maybe<T> => {
-    if (maybe1.kind == "Just" && maybe2.kind == "Just") {
-        return Just(fun(maybe1.value)(maybe2.value))
+export const map2 = <A, B, C>(fun: (arg1: A) => (arg2: B) => C) => (maybeA: Maybe<A>) => (maybeB: Maybe<B>): Maybe<C> => {
+    if (maybeA.kind == "Just" && maybeB.kind == "Just") {
+        return Just(fun(maybeA.value)(maybeB.value))
     } else {
         return Nothing
     }

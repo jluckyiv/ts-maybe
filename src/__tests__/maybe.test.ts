@@ -20,6 +20,14 @@ test('Maybe.map with string', () => {
     expect(actual).toStrictEqual(Just("HELLO"))
 })
 
+test('Maybe.map converting types', () => {
+    const maybe = Just(1)
+    const toString = (n: number) => n.toString()
+    const actual = Maybe.map(toString)(maybe)
+    const expected = Just("1")
+    expect(actual).toStrictEqual(expected)
+})
+
 test('Maybe.map with Nothing', () => {
     const maybe = Nothing
     const toUpper = (s: string) => s.toUpperCase()
