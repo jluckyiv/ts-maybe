@@ -64,15 +64,26 @@ export const map5 = <A, B, C, D, E, F>(fun: (arg1: A) => (arg2: B) => (arg3: C) 
     }
 }
 
+export const andThen = <A, B>(fun: (arg: A) => Maybe<B>) => (maybe: Maybe<A>): Maybe<B> => {
+    switch (maybe.kind) {
+        case "Just": return fun(maybe.value)
+        case "Nothing": return Nothing
+        default:
+            const _: never = maybe
+            return _
+    }
+}
+
 export const Maybe = {
     withDefault: withDefault,
+    Just: Just,
+    Nothing: Nothing,
     map: map,
     map2: map2,
     map3: map3,
     map4: map4,
     map5: map5,
-    Just: Just,
-    Nothing: Nothing
+    andThen: andThen,
 }
 
 export default Maybe

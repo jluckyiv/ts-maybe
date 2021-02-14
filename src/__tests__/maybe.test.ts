@@ -14,6 +14,11 @@ const add2 = (n1: number) => (n2: number) => n1 + n2;
 const add3 = (n1: number) => (n2: number) => (n3: number) => n1 + n2 + n3;
 const add4 = (n1: number) => (n2: number) => (n3: number) => (n4: number) => n1 + n2 + n3 + n4;
 const add5 = (n1: number) => (n2: number) => (n3: number) => (n4: number) => (n5: number) => n1 + n2 + n3 + n4 + n5;
+const toValidMonth = (n: number) => n < 1 || n > 12 ? Nothing : Just(n)
+const toInt = (s: string) => {
+    const i = parseInt(s)
+    isNaN(i) ? Nothing : Just(i)
+}
 
 test('Maybe.withDefault', () => {
     const maybe = Just(1)
@@ -169,4 +174,11 @@ test('Maybe.map5 int to string', () => {
     const m1 = Just(1), m2 = Just(2), m3 = Just(3), m4 = Just(4), m5 = Just(5)
     const actual = Maybe.map5(toString5)(m1)(m2)(m3)(m4)(m5)
     expect(actual).toStrictEqual(Just("12345"))
+})
+
+test('Maybe.andThen', () => {
+    const actual = Maybe.andThen(toInt)(toValidMonth)(1)
+    expect(actual).toStrictEqual(Just(1))
+
+
 })
