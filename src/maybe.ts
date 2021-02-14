@@ -48,11 +48,29 @@ export const map3 = <A, B, C, D>(fun: (arg1: A) => (arg2: B) => (arg3: C) => D) 
     }
 }
 
+export const map4 = <A, B, C, D, E>(fun: (arg1: A) => (arg2: B) => (arg3: C) => (arg4: D) => E) => (maybeA: Maybe<A>) => (maybeB: Maybe<B>) => (maybeC: Maybe<C>) => (maybeD: Maybe<D>): Maybe<E> => {
+    if (maybeA.kind == "Just" && maybeB.kind == "Just" && maybeC.kind == "Just" && maybeD.kind == "Just") {
+        return Just(fun(maybeA.value)(maybeB.value)(maybeC.value)(maybeD.value))
+    } else {
+        return Nothing
+    }
+}
+
+export const map5 = <A, B, C, D, E, F>(fun: (arg1: A) => (arg2: B) => (arg3: C) => (arg4: D) => (arg5: E) => F) => (maybeA: Maybe<A>) => (maybeB: Maybe<B>) => (maybeC: Maybe<C>) => (maybeD: Maybe<D>) => (maybeE: Maybe<E>): Maybe<F> => {
+    if (maybeA.kind == "Just" && maybeB.kind == "Just" && maybeC.kind == "Just" && maybeD.kind == "Just" && maybeE.kind == "Just") {
+        return Just(fun(maybeA.value)(maybeB.value)(maybeC.value)(maybeD.value)(maybeE.value))
+    } else {
+        return Nothing
+    }
+}
+
 export const Maybe = {
     withDefault: withDefault,
     map: map,
     map2: map2,
     map3: map3,
+    map4: map4,
+    map5: map5,
     Just: Just,
     Nothing: Nothing
 }
