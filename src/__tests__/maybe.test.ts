@@ -14,10 +14,9 @@ const add2 = (n1: number) => (n2: number) => n1 + n2;
 const add3 = (n1: number) => (n2: number) => (n3: number) => n1 + n2 + n3;
 const add4 = (n1: number) => (n2: number) => (n3: number) => (n4: number) => n1 + n2 + n3 + n4;
 const add5 = (n1: number) => (n2: number) => (n3: number) => (n4: number) => (n5: number) => n1 + n2 + n3 + n4 + n5;
-const toValidMonth = (n: number) => n < 1 || n > 12 ? Nothing : Just(n)
 const toInt = (s: string) => {
     const i = parseInt(s)
-    isNaN(i) ? Nothing : Just(i)
+    return isNaN(i) ? Nothing : Just(i)
 }
 
 test('Maybe.withDefault', () => {
@@ -176,9 +175,21 @@ test('Maybe.map5 int to string', () => {
     expect(actual).toStrictEqual(Just("12345"))
 })
 
-test('Maybe.andThen', () => {
-    const actual = Maybe.andThen(toInt)(toValidMonth)(1)
+const toValidMonth = (n: number) => n < 1 || n > 12 ? Nothing : Just(n)
+test('Maybe.andThen with Just', () => {
+    const maybe = toInt("1")
+    const actual = Maybe.andThen(toValidMonth)(maybe)
     expect(actual).toStrictEqual(Just(1))
+})
 
+test('Maybe.andThen with initial Nothing', () => {
+    const maybe = toInt("a")
+    const actual = Maybe.andThen(toValidMonth)(maybe)
+    expect(actual).toStrictEqual(Nothing)
+})
 
+test('Maybe.andThen with applied Nothing', () => {
+    const maybe = toInt("13")
+    const actual = Maybe.andThen(toValidMonth)(maybe)
+    expect(actual).toStrictEqual(Nothing)
 })
