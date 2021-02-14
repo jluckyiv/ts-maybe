@@ -26,3 +26,27 @@ test('Maybe.map with Nothing', () => {
     const actual = Maybe.map(toUpper)(maybe)
     expect(actual).toStrictEqual(Nothing)
 })
+
+test('Maybe.map2 with ints', () => {
+    const m1 = Just(1)
+    const m2 = Just(2)
+    const add = (n1: number) => (n2: number) => n1 + n2;
+    const actual = Maybe.map2(add)(m1)(m2)
+    expect(actual).toStrictEqual(Just(3))
+})
+
+test('Maybe.map2 with second Nothing', () => {
+    const m1 = Just(1)
+    const m2 = Nothing
+    const add = (n1: number) => (n2: number) => n1 + n2;
+    const actual = Maybe.map2(add)(m1)(m2)
+    expect(actual).toStrictEqual(Nothing)
+})
+
+test('Maybe.map2 with first Nothing', () => {
+    const m1 = Nothing
+    const m2 = Just(1)
+    const add = (n1: number) => (n2: number) => n1 + n2;
+    const actual = Maybe.map2(add)(m1)(m2)
+    expect(actual).toStrictEqual(Nothing)
+})
