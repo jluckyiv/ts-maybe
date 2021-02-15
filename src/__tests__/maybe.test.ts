@@ -1,4 +1,4 @@
-import { Maybe, Just, Nothing } from "../maybe"
+import { just, nothing } from "../maybe"
 
 const toUpper = (s: string) => s.toUpperCase();
 const toString1 = (n: number) => n.toString();
@@ -16,37 +16,95 @@ const add4 = (n1: number) => (n2: number) => (n3: number) => (n4: number) => n1 
 const add5 = (n1: number) => (n2: number) => (n3: number) => (n4: number) => (n5: number) => n1 + n2 + n3 + n4 + n5;
 const toInt = (s: string) => {
     const i = parseInt(s)
-    return isNaN(i) ? Nothing : Just(i)
+    return isNaN(i) ? nothing() : just(i)
 }
 
 test('Maybe.withDefault', () => {
-    const maybe = Just(1)
-    const actual = Maybe.withDefault(0)(maybe)
+    const maybe = just(1)
+    const actual = maybe.withDefault(0)
     expect(actual).toBe(1);
 })
 
-test('Maybe.map with Nothing', () => {
-    const maybe = Nothing
-    const actual = Maybe.map(toUpper)(maybe)
-    expect(actual).toStrictEqual(Nothing)
-})
-
 test('Maybe.map with int', () => {
-    const maybe = Just(1)
-    const actual = Maybe.map(add1)(maybe)
-    expect(actual).toStrictEqual(Just(2))
+    const maybe = just(1)
+    const actual = maybe.map(add1).withDefault(0)
+    expect(actual).toBe(2)
 })
 
 test('Maybe.map with string', () => {
-    const maybe = Just("hello")
-    const actual = Maybe.map(toUpper)(maybe)
-    expect(actual).toStrictEqual(Just("HELLO"))
+    const maybe = just("hello")
+    const actual = maybe.map(toUpper).withDefault("")
+    expect(actual).toEqual("HELLO")
 })
 
 test('Maybe.map int to string', () => {
-    const maybe = Just(1)
-    const actual = Maybe.map(toString1)(maybe)
-    expect(actual).toStrictEqual(Just("1"))
+    const maybe = just(1)
+    const actual = maybe.map(toString1).withDefault("")
+    expect(actual).toEqual("1")
+})
+
+test('Maybe.map with Nothing', () => {
+    const maybe = nothing()
+    const actual = maybe.map(toUpper)
+    expect(actual).toStrictEqual(nothing())
+})
+
+const toValidMonth = (n: number) => n < 1 || n > 12 ? nothing() : just(n)
+
+test('Maybe.andThen with Just', () => {
+    const maybe = toInt("1")
+    const actual = maybe.andThen(toValidMonth)
+    expect(actual).toStrictEqual(just(1))
+})
+
+test('Maybe class withDefault', () => {
+    const maybe = just(1);
+    const actual = maybe.withDefault(2)
+    expect(actual).toEqual(1)
+})
+
+test('Maybe chain map', () => {
+    const maybe = just(1);
+    const actual = maybe.map(add1)
+    expect(actual).toMatchObject(just(2))
+})
+
+test('Maybe chain map chain', () => {
+    const maybe = just(1);
+    const actual = maybe.map(add1).map(add1).map(add1).map(add1)
+    expect(actual).toMatchObject(just(5))
+})
+
+test('Maybe chain andThen successful', () => {
+    const actual = just("1").andThen(toInt).andThen(toValidMonth)
+    expect(actual).toMatchObject(just(1))
+})
+
+test('Maybe chain andThen with Nothing', () => {
+    const actual = just("one").andThen(toInt).andThen(toValidMonth)
+    expect(actual).toMatchObject(nothing())
+})
+
+test('Maybe chain andThen with Just -> Nothing', () => {
+    const actual = just("13").andThen(toInt).andThen(toValidMonth)
+    expect(actual).toMatchObject(nothing())
+})
+
+test('Maybe chain map andThen', () => {
+    const actual = just(1).map(add1).map(add1).map(toString1).andThen(toInt).andThen(toValidMonth)
+    expect(actual).toMatchObject(just(3))
+})
+/*
+test('Maybe.andThen with initial Nothing', () => {
+    const maybe = toInt("a")
+    const actual = Maybe.andThen(toValidMonth)(maybe)
+    expect(actual).toStrictEqual(Nothing)
+})
+
+test('Maybe.andThen with applied Nothing', () => {
+    const maybe = toInt("13")
+    const actual = Maybe.andThen(toValidMonth)(maybe)
+    expect(actual).toStrictEqual(Nothing)
 })
 
 test('Maybe.map2 with first Nothing', () => {
@@ -175,21 +233,4 @@ test('Maybe.map5 int to string', () => {
     expect(actual).toStrictEqual(Just("12345"))
 })
 
-const toValidMonth = (n: number) => n < 1 || n > 12 ? Nothing : Just(n)
-test('Maybe.andThen with Just', () => {
-    const maybe = toInt("1")
-    const actual = Maybe.andThen(toValidMonth)(maybe)
-    expect(actual).toStrictEqual(Just(1))
-})
-
-test('Maybe.andThen with initial Nothing', () => {
-    const maybe = toInt("a")
-    const actual = Maybe.andThen(toValidMonth)(maybe)
-    expect(actual).toStrictEqual(Nothing)
-})
-
-test('Maybe.andThen with applied Nothing', () => {
-    const maybe = toInt("13")
-    const actual = Maybe.andThen(toValidMonth)(maybe)
-    expect(actual).toStrictEqual(Nothing)
-})
+*/
