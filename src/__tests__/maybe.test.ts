@@ -12,7 +12,6 @@ const toString5 = (n1: number) => (n2: number) => (n3: number) => (
   n4: number
 ) => (n5: number) =>
   n1.toString() + n2.toString() + n3.toString() + n4.toString() + n5.toString();
-const concat2 = (s1: string) => (s2: string) => s1 + s2;
 const concat3 = (s1: string) => (s2: string) => (s3: string) => s1 + s2 + s3;
 const concat4 = (s1: string) => (s2: string) => (s3: string) => (s4: string) =>
   s1 + s2 + s3 + s4;
@@ -31,95 +30,118 @@ const toInt = (s: string) => {
   const i = parseInt(s);
   return isNaN(i) ? nothing : just(i);
 };
+const toValidMonth = (n: number) => (n < 1 || n > 12 ? nothing : just(n));
 
-test("Maybe.withDefault", () => {
+test("Maybe.withDefault function", () => {
+  const maybe = just(1);
+  const actual = Maybe.withDefault(0)(maybe);
+  expect(actual).toBe(1);
+});
+
+test("Maybe.withDefault method", () => {
   const maybe = just(1);
   const actual = maybe.withDefault(0);
   expect(actual).toBe(1);
 });
 
-test("Maybe.map with int", () => {
+test("Maybe.map function with int", () => {
   const maybe = just(1);
-  const actual = maybe.map(add1).withDefault(0);
-  expect(actual).toBe(2);
+  const actual = Maybe.map(add1)(maybe);
+  expect(actual).toStrictEqual(just(2));
 });
 
-test("Maybe.map with string", () => {
+test("Maybe.map method with int", () => {
+  const maybe = just(1);
+  const actual = maybe.map(add1);
+  expect(actual).toStrictEqual(just(2));
+});
+
+test("Maybe.map function with string", () => {
   const maybe = just("hello");
-  const actual = maybe.map(toUpper).withDefault("");
-  expect(actual).toEqual("HELLO");
+  const actual = Maybe.map(toUpper)(maybe);
+  expect(actual).toStrictEqual(just("HELLO"));
 });
 
-test("Maybe.map int to string", () => {
+test("Maybe.map method with string", () => {
+  const maybe = just("hello");
+  const actual = maybe.map(toUpper);
+  expect(actual).toStrictEqual(just("HELLO"));
+});
+
+test("Maybe.map function int to string", () => {
   const maybe = just(1);
-  const actual = maybe.map(toString1).withDefault("");
-  expect(actual).toEqual("1");
+  const actual = Maybe.map(toString1)(maybe);
+  expect(actual).toEqual(just("1"));
 });
 
-test("Maybe.map with Nothing", () => {
+test("Maybe.map int method to string", () => {
+  const maybe = just(1);
+  const actual = maybe.map(toString1);
+  expect(actual).toEqual(just("1"));
+});
+
+test("Maybe.map function with nothing", () => {
+  const maybe = nothing;
+  const actual = Maybe.map(toUpper)(maybe);
+  expect(actual).toStrictEqual(nothing);
+});
+
+test("Maybe.map method with nothing", () => {
   const maybe = nothing;
   const actual = maybe.map(toUpper);
   expect(actual).toStrictEqual(nothing);
 });
 
-const toValidMonth = (n: number) => (n < 1 || n > 12 ? nothing : just(n));
+test("Maybe.andThen function with just", () => {
+  const maybe = toInt("1");
+  const actual = Maybe.andThen(toValidMonth)(maybe);
+  expect(actual).toStrictEqual(just(1));
+});
 
-test("Maybe.andThen with Just", () => {
+test("Maybe.andThen method with Just", () => {
   const maybe = toInt("1");
   const actual = maybe.andThen(toValidMonth);
   expect(actual).toStrictEqual(just(1));
 });
 
-test("Maybe class withDefault", () => {
-  const maybe = just(1);
-  const actual = maybe.withDefault(2);
-  expect(actual).toEqual(1);
-});
-
-test("Maybe chain map", () => {
-  const maybe = just(1);
-  const actual = maybe.map(add1);
-  expect(actual).toMatchObject(just(2));
-});
-
-test("Maybe chain map chain", () => {
+test("Maybe.map method chain", () => {
   const maybe = just(1);
   const actual = maybe.map(add1).map(add1).map(add1).map(add1);
-  expect(actual).toMatchObject(just(5));
+  expect(actual).toStrictEqual(just(5));
 });
 
-test("Maybe chain andThen successful", () => {
+test("Maybe.andThen method chain", () => {
   const actual = just("1").andThen(toInt).andThen(toValidMonth);
-  expect(actual).toMatchObject(just(1));
+  expect(actual).toStrictEqual(just(1));
 });
 
-test("Maybe chain andThen with Nothing", () => {
+test("Maybe.andThen method chain fail early", () => {
   const actual = just("one").andThen(toInt).andThen(toValidMonth);
-  expect(actual).toMatchObject(nothing);
+  expect(actual).toStrictEqual(nothing);
 });
 
-test("Maybe chain andThen with Just -> Nothing", () => {
+test("Maybe.andThen method chain fail late", () => {
   const actual = just("13").andThen(toInt).andThen(toValidMonth);
-  expect(actual).toMatchObject(nothing);
+  expect(actual).toStrictEqual(nothing);
 });
 
-test("Maybe chain map andThen", () => {
+test("Maybe.map chain Maybe.andThen", () => {
   const actual = just(1)
     .map(add1)
     .map(toString1)
     .andThen(toInt)
     .map(add1)
     .andThen(toValidMonth);
-  expect(actual).toMatchObject(just(3));
+  expect(actual).toStrictEqual(just(3));
 });
 
-test("Maybe.andThen with initial Nothing", () => {
+test("Maybe.andThen method with early nothing", () => {
   const maybe = toInt("a");
   const actual = maybe.andThen(toValidMonth);
   expect(actual).toStrictEqual(nothing);
 });
 
-test("Maybe.andThen with applied Nothing", () => {
+test("Maybe.andThen method with late nothing", () => {
   const maybe = toInt("13");
   const actual = maybe.andThen(toValidMonth);
   expect(actual).toStrictEqual(nothing);
@@ -128,13 +150,20 @@ test("Maybe.andThen with applied Nothing", () => {
 test("Maybe.map2 with ints", () => {
   const m1 = just(1),
     m2 = just(2);
-  const actual = Maybe.map2(add2)(m2)(m1);
+  const actual = Maybe.map2(add2)(m1)(m2);
   expect(actual).toStrictEqual(just(3));
 });
 
-test("Maybe.map2 with second Nothing", () => {
+test("Maybe.map2 with nothing first", () => {
   const m1 = just(1),
     m2 = nothing;
+  const actual = Maybe.map2(add2)(m1)(m2);
+  expect(actual).toStrictEqual(nothing);
+});
+
+test("Maybe.map2 with nothing second", () => {
+  const m1 = nothing,
+    m2 = just(1);
   const actual = Maybe.map2(add2)(m1)(m2);
   expect(actual).toStrictEqual(nothing);
 });
@@ -146,7 +175,7 @@ test("Maybe.map2 int to string", () => {
   expect(actual).toStrictEqual(just("12"));
 });
 
-test("Maybe.map3 with first Nothing", () => {
+test("Maybe.map3 with nothing first", () => {
   const m1 = nothing,
     m2 = just(2),
     m3 = just(3);
@@ -154,7 +183,7 @@ test("Maybe.map3 with first Nothing", () => {
   expect(actual).toStrictEqual(nothing);
 });
 
-test("Maybe.map3 with second Nothing", () => {
+test("Maybe.map3 with nothing second", () => {
   const m1 = just(1),
     m2 = nothing,
     m3 = just(3);
@@ -162,7 +191,7 @@ test("Maybe.map3 with second Nothing", () => {
   expect(actual).toStrictEqual(nothing);
 });
 
-test("Maybe.map3 with third Nothing", () => {
+test("Maybe.map3 with nothing third", () => {
   const m1 = just(1),
     m2 = just(2),
     m3 = nothing;
@@ -194,7 +223,7 @@ test("Maybe.map3 int to string", () => {
   expect(actual).toStrictEqual(just("123"));
 });
 
-test("Maybe.map4 with first nothing", () => {
+test("Maybe.map4 with nothing first", () => {
   const m1 = nothing,
     m2 = just(2),
     m3 = just(3),
@@ -203,7 +232,7 @@ test("Maybe.map4 with first nothing", () => {
   expect(actual).toStrictEqual(nothing);
 });
 
-test("Maybe.map4 with second nothing", () => {
+test("Maybe.map4 with nothing second", () => {
   const m1 = just(1),
     m2 = nothing,
     m3 = just(3),
@@ -212,7 +241,7 @@ test("Maybe.map4 with second nothing", () => {
   expect(actual).toStrictEqual(nothing);
 });
 
-test("Maybe.map4 with third nothing", () => {
+test("Maybe.map4 with nothing third", () => {
   const m1 = just(1),
     m2 = just(2),
     m3 = nothing,
@@ -221,7 +250,7 @@ test("Maybe.map4 with third nothing", () => {
   expect(actual).toStrictEqual(nothing);
 });
 
-test("Maybe.map4 with fourth nothing", () => {
+test("Maybe.map4 with nothing fourth", () => {
   const m1 = just(1),
     m2 = just(2),
     m3 = just(3),
@@ -257,7 +286,47 @@ test("Maybe.map4 int to string", () => {
   expect(actual).toStrictEqual(just("1234"));
 });
 
-test("Maybe.map5 with nothing", () => {
+test("Maybe.map5 with nothing first", () => {
+  const m1 = nothing,
+    m2 = just(2),
+    m3 = just(3),
+    m4 = just(4),
+    m5 = just(5);
+  const actual = Maybe.map5(add5)(m1)(m2)(m3)(m4)(m5);
+  expect(actual).toStrictEqual(nothing);
+});
+
+test("Maybe.map5 with nothing second", () => {
+  const m1 = just(1),
+    m2 = nothing,
+    m3 = just(3),
+    m4 = just(4),
+    m5 = just(5);
+  const actual = Maybe.map5(add5)(m1)(m2)(m3)(m4)(m5);
+  expect(actual).toStrictEqual(nothing);
+});
+
+test("Maybe.map5 with nothing third", () => {
+  const m1 = just(1),
+    m2 = just(2),
+    m3 = nothing,
+    m4 = just(4),
+    m5 = just(5);
+  const actual = Maybe.map5(add5)(m1)(m2)(m3)(m4)(m5);
+  expect(actual).toStrictEqual(nothing);
+});
+
+test("Maybe.map5 with nothing fourth", () => {
+  const m1 = just(1),
+    m2 = just(2),
+    m3 = just(3),
+    m4 = nothing,
+    m5 = just(5);
+  const actual = Maybe.map5(add5)(m1)(m2)(m3)(m4)(m5);
+  expect(actual).toStrictEqual(nothing);
+});
+
+test("Maybe.map5 with nothing fifth", () => {
   const m1 = just(1),
     m2 = just(2),
     m3 = just(3),
