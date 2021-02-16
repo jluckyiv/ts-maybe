@@ -5,6 +5,14 @@ interface MaybeInterface<A> {
   andThen: <B>(f: (arg: A) => Maybe<B>) => Maybe<B>;
 }
 
+const of = <A>(maybeValue: A): Maybe<A> => {
+  if (maybeValue == null) {
+    return nothing;
+  } else {
+    return just(maybeValue);
+  }
+};
+
 const withDefault = <A>(defaultValue: A) => (maybeA: Maybe<A>): A => {
   switch (maybeA.kind) {
     case "Just":
@@ -18,6 +26,17 @@ const map = <A, B>(f: (arg: A) => B) => (maybeA: Maybe<A>): Maybe<B> => {
   switch (maybeA.kind) {
     case "Just":
       return just(f(maybeA.value));
+    case "Nothing":
+      return nothing;
+  }
+};
+
+const andThen = <A, B>(f: (arg: A) => Maybe<B>) => (
+  maybeA: Maybe<A>
+): Maybe<B> => {
+  switch (maybeA.kind) {
+    case "Just":
+      return f(maybeA.value);
     case "Nothing":
       return nothing;
   }
@@ -84,17 +103,6 @@ const map5 = <A, B, C, D, E, F>(
   }
 };
 
-const andThen = <A, B>(f: (arg: A) => Maybe<B>) => (
-  maybeA: Maybe<A>
-): Maybe<B> => {
-  switch (maybeA.kind) {
-    case "Just":
-      return f(maybeA.value);
-    case "Nothing":
-      return nothing;
-  }
-};
-
 class Just<A> implements MaybeInterface<A> {
   kind: "Just";
   value: A;
@@ -146,13 +154,15 @@ class Nothing implements MaybeInterface<any> {
 
 export type Maybe<T> = Just<T> | Nothing;
 export const Maybe = {
-  withDefault: withDefault,
   andThen: andThen,
-  map: map,
   map2: map2,
   map3: map3,
   map4: map4,
   map5: map5,
+  map: map,
+  of: of,
+  withDefault: withDefault,
 };
+
 export const just = <T>(value: T) => new Just(value);
 export const nothing = Nothing.getInstance();
