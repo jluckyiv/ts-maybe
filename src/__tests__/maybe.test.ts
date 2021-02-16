@@ -2,7 +2,7 @@ import { Maybe, just, nothing } from "../maybe";
 
 describe("Maybe", () => {
   describe("Maybe.of", () => {
-    describe("truthy values", () => {
+    describe("truthy values return just(value)", () => {
       test("Maybe.of(1) is just(1)", () => {
         const actual = Maybe.of(1);
         expect(actual).toStrictEqual(just(1));
@@ -26,6 +26,11 @@ describe("Maybe", () => {
         test("Maybe.of(false) is just(false)", () => {
           const actual = Maybe.of(false);
           expect(actual).toStrictEqual(just(false));
+        });
+
+        test("Maybe.of(0) is just(0)", () => {
+          const actual = Maybe.of(0);
+          expect(actual).toStrictEqual(just(0));
         });
 
         test("Maybe.of(-0) is just(-0)", () => {
@@ -100,8 +105,13 @@ describe("Maybe", () => {
       });
 
       test("can chain mapped functions", () => {
-        const actual = just(1).map(add1).map(add1).map(add1).map(add1);
-        expect(actual).toStrictEqual(just(5));
+        const actual = just(1)
+          .map(add1)
+          .map(add1)
+          .map(add1)
+          .map(add1)
+          .map(toString);
+        expect(actual).toStrictEqual(just("5"));
       });
     });
   });
