@@ -163,6 +163,31 @@ describe("Maybe", () => {
     });
   });
 
+  describe("Maybe.andMap", () => {
+    const add3 = (n1: number) => (n2: number) => (n3: number) => n1 + n2 + n3;
+
+    test("with nothing first", () => {
+      const actual = just(add3).andMap(nothing).andMap(just(1)).andMap(just(1));
+      expect(actual).toStrictEqual(nothing);
+    });
+    test("with nothing second", () => {
+      const actual = just(add3).andMap(just(1)).andMap(nothing).andMap(just(1));
+      expect(actual).toStrictEqual(nothing);
+    });
+    test("with nothing third", () => {
+      const actual = just(add3).andMap(just(1)).andMap(just(1)).andMap(nothing);
+      expect(actual).toStrictEqual(nothing);
+    });
+    test("without function as first argument", () => {
+      const actual = just(1).andMap(just(1));
+      expect(actual).toStrictEqual(nothing);
+    });
+    test("with valid input", () => {
+      const actual = just(add3).andMap(just(1)).andMap(just(1)).andMap(just(1));
+      expect(actual).toStrictEqual(just(3));
+    });
+  });
+
   describe("Maybe.map2", () => {
     const toString2 = (n1: number) => (n2: number) =>
       n1.toString() + n2.toString();

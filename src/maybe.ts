@@ -3,13 +3,18 @@ interface MaybeInterface<A> {
   withDefault: (defaultValue: A) => A;
   map: <B>(f: (arg: A) => B) => Maybe<B>;
   andThen: <B>(f: (arg: A) => Maybe<B>) => Maybe<B>;
+  andMap: <B>(f: Maybe<FunctionValue<A, B> | B>) => Maybe<A>;
+}
+
+interface FunctionValue<A, B> {
+  value: (_: A) => B;
 }
 
 const of = <A>(maybeValue: A): Maybe<A> => {
   if (maybeValue == null) {
-    return nothing;
+    return Nothing.getInstance();
   } else {
-    return just(maybeValue);
+    return new Just(maybeValue);
   }
 };
 
@@ -25,9 +30,9 @@ const withDefault = <A>(defaultValue: A) => (maybeA: Maybe<A>): A => {
 const map = <A, B>(f: (arg: A) => B) => (maybeA: Maybe<A>): Maybe<B> => {
   switch (maybeA.kind) {
     case "Just":
-      return just(f(maybeA.value));
+      return new Just(f(maybeA.value));
     case "Nothing":
-      return nothing;
+      return Nothing.getInstance();
   }
 };
 
@@ -38,7 +43,7 @@ const andThen = <A, B>(f: (arg: A) => Maybe<B>) => (
     case "Just":
       return f(maybeA.value);
     case "Nothing":
-      return nothing;
+      return Nothing.getInstance();
   }
 };
 
@@ -46,9 +51,9 @@ const map2 = <A, B, C>(f: (argA: A) => (argB: B) => C) => (
   maybeA: Maybe<A>
 ) => (maybeB: Maybe<B>): Maybe<C> => {
   if (maybeA.kind === "Just" && maybeB.kind === "Just") {
-    return just(f(maybeA.value)(maybeB.value));
+    return new Just(f(maybeA.value)(maybeB.value));
   } else {
-    return nothing;
+    return Nothing.getInstance();
   }
 };
 
@@ -60,9 +65,9 @@ const map3 = <A, B, C, D>(f: (argA: A) => (argB: B) => (argC: C) => D) => (
     maybeB.kind === "Just" &&
     maybeC.kind === "Just"
   ) {
-    return just(f(maybeA.value)(maybeB.value)(maybeC.value));
+    return new Just(f(maybeA.value)(maybeB.value)(maybeC.value));
   } else {
-    return nothing;
+    return Nothing.getInstance();
   }
 };
 
@@ -77,9 +82,9 @@ const map4 = <A, B, C, D, E>(
     maybeC.kind === "Just" &&
     maybeD.kind === "Just"
   ) {
-    return just(f(maybeA.value)(maybeB.value)(maybeC.value)(maybeD.value));
+    return new Just(f(maybeA.value)(maybeB.value)(maybeC.value)(maybeD.value));
   } else {
-    return nothing;
+    return Nothing.getInstance();
   }
 };
 
@@ -95,11 +100,25 @@ const map5 = <A, B, C, D, E, F>(
     maybeD.kind === "Just" &&
     maybeE.kind === "Just"
   ) {
-    return just(
+    return new Just(
       f(maybeA.value)(maybeB.value)(maybeC.value)(maybeD.value)(maybeE.value)
     );
   } else {
-    return nothing;
+    return Nothing.getInstance();
+  }
+};
+
+const andMap = <A, B>(maybeFunction: Maybe<FunctionValue<A, B> | B>) => (
+  maybeValue: Maybe<A>
+): Maybe<B> => {
+  if (maybeValue.kind === "Nothing") {
+    return Nothing.getInstance();
+  } else if (maybeFunction.kind === "Nothing") {
+    return Nothing.getInstance();
+  } else if (typeof maybeFunction.value !== "function") {
+    return Nothing.getInstance();
+  } else {
+    return new Just(maybeFunction.value(maybeValue.value));
   }
 };
 
@@ -123,9 +142,13 @@ class Just<A> implements MaybeInterface<A> {
   andThen<B>(f: (arg: A) => Maybe<B>): Maybe<B> {
     return andThen(f)(this);
   }
+
+  andMap<B>(f: Maybe<FunctionValue<A, B> | B>): Maybe<A> {
+    return andMap(this)(f);
+  }
 }
 
-class Nothing implements MaybeInterface<any> {
+class Nothing implements MaybeInterface<unknown> {
   kind: "Nothing";
 
   private constructor() {
@@ -139,16 +162,20 @@ class Nothing implements MaybeInterface<any> {
     return Nothing.instance;
   }
 
-  withDefault(defaultValue: any) {
-    return withDefault(defaultValue)(this);
+  withDefault<A>(defaultValue: A) {
+    return defaultValue;
   }
 
-  map(f: (_: any) => any) {
-    return map(f)(this);
+  map<B>(_: (_: any) => B) {
+    return Nothing.getInstance();
   }
 
-  andThen<B>(f: (_: any) => Maybe<B>): Maybe<B> {
-    return andThen(f)(this);
+  andThen<B>(_: (_: any) => Maybe<B>): Maybe<B> {
+    return Nothing.getInstance();
+  }
+
+  andMap<B>(_: Maybe<B>) {
+    return Nothing.getInstance();
   }
 }
 
